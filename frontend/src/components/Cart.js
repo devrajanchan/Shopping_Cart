@@ -3,8 +3,46 @@ import { Button, Col, Form, Image, ListGroup, Row } from "react-bootstrap";
 import { AiFillDelete } from "react-icons/ai";
 import { CartState } from "../context/Context";
 import Rating from "./Rating";
+import axios from "axios";
+
+
 
 const Cart = () => {
+
+  const checkoutHandler = async (amount) => {
+
+        const { data: { key } } = await axios.get("http://www.localhost:4000/api/getkey")
+
+        const { data: { order } } = await axios.post("http://localhost:4000/api/checkout", {
+            amount
+        })
+      
+        const options = {
+            key,
+            amount: order.amount,
+            currency: "INR",
+            name: "Devraj Co. Ltd.",
+            description: "Tutorial of RazorPay",
+            image: "https://avatars.githubusercontent.com/u/25058652?v=4",
+            order_id: order.id,
+            callback_url: "http://localhost:4000/api/paymentverification",
+            prefill: {
+                name: "Devraj Anchan",
+                email: "devraj.anchan@gmail.com",
+                contact: "9879876969"
+            },
+            notes: {
+                "address": "Razorpay Corporate Office"
+            },
+            theme: {
+                "color": "#121212"
+            }
+        };
+        const razor = new window.Razorpay(options);
+        razor.open();
+      
+      }
+
   const {
     state: { cart },
     dispatch,
@@ -75,7 +113,8 @@ const Cart = () => {
       <div className="filters summary">
         <span className="title">Subtotal ({cart.length}) items</span>
         <span style={{ fontWeight: 700, fontSize: 20 }}>Total: ₹ {total}</span>
-        <Button type="button" disabled={cart.length === 0}>
+
+        <Button type="button" disabled={cart.length === 0} onClick={() => checkoutHandler(total)}>
           Proceed to Checkout
         </Button>
       </div>
